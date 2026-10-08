@@ -9,21 +9,35 @@ export default async function ExcusesFeedPage() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    // Query excuses with author profiles and votes
-    const { data: excuses } = await supabase
+    // email_excuses.user_id has no foreign key to profiles, so PostgREST
+    // rejects an embedded profiles join and the whole feed query fails.
+    const { data: excuses, error: excusesError } = await supabase
         .from('email_excuses')
         .select(`
       id,
+      user_id,
       situation,
       recipient,
       subject,
       diplomatic_email,
       unfiltered_reality,
       created_at,
-      profiles:user_id (first_name, last_name, avatar_url),
       excuse_votes (user_id, vote_value)
     `)
         .order('created_at', { ascending: false });
+
+    const profileById = new Map<string, { first_name: string | null; last_name: string | null; avatar_url: string | null }>();
+    const authorIds = [...new Set((excuses ?? []).map((item) => item.user_id).filter(Boolean))];
+    if (authorIds.length > 0) {
+        const { data: profiles } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name, avatar_url')
+            .in('id', authorIds);
+
+        for (const profile of profiles ?? []) {
+            profileById.set(profile.id, profile);
+        }
+    }
 
     return (
         <main style={{ maxWidth: '760px', margin: '40px auto', padding: '0 20px', fontFamily: 'system-ui, sans-serif' }}>
@@ -52,22 +66,29 @@ export default async function ExcusesFeedPage() {
             <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <h2 style={{ fontSize: '18px', margin: 0, color: '#0f172a' }}>Community Submissions & Rankings</h2>
 
-                {(!excuses || excuses.length === 0) && (
+                {excusesError && (
+                    <p style={{ color: '#dc2626', fontSize: '14px' }}>
+                        Could not load submissions: {excusesError.message}
+                    </p>
+                )}
+
+                {(!excusesError && (!excuses || excuses.length === 0)) && (
                     <p style={{ color: '#94a3b8' }}>No excuses posted yet. Generate the first one above!</p>
                 )}
 
                 {excuses?.map((item: any) => {
-                    const upvotes = item.excuse_votes.filter((v: any) => v.vote_value === 1).length;
-                    const downvotes = item.excuse_votes.filter((v: any) => v.vote_value === -1).length;
+                    const votes = item.excuse_votes ?? [];
+                    const upvotes = votes.filter((v: any) => v.vote_value === 1).length;
+                    const downvotes = votes.filter((v: any) => v.vote_value === -1).length;
                     const netScore = upvotes - downvotes;
-                    const userVote = user ? item.excuse_votes.find((v: any) => v.user_id === user.id)?.vote_value : null;
+                    const userVote = user ? votes.find((v: any) => v.user_id === user.id)?.vote_value : null;
 
                     return (
                         <ExcuseCard
                             key={item.id}
-                            excuse={item}
+                            excuse={{ ...item, profiles: profileById.get(item.user_id) ?? null }}
                             score={netScore}
-                            userVote={userVote}
+                            userVote={userVote ?? null}
                             isLoggedIn={!!user}
                         />
                     );
