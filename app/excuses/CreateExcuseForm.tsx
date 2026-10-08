@@ -8,14 +8,18 @@ export default function CreateExcuseForm() {
     const [isPending, startTransition] = useTransition();
     const [errorMsg, setErrorMsg] = useState('');
 
-    const handleSubmit = (formData: FormData) => {
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
         setErrorMsg('');
+
+        const formData = new FormData(e.currentTarget);
+
         startTransition(async () => {
-            try {
-                await generateExcuseAction(formData);
+            const result = await generateExcuseAction(formData);
+            if (!result.success) {
+                setErrorMsg(result.error || 'Generation failed.');
+            } else {
                 formRef.current?.reset();
-            } catch (err: any) {
-                setErrorMsg(err.message || 'Generation failed.');
             }
         });
     };
@@ -23,7 +27,7 @@ export default function CreateExcuseForm() {
     return (
         <form
             ref={formRef}
-            action={handleSubmit}
+            onSubmit={handleSubmit}
             style={{
                 padding: '20px',
                 backgroundColor: '#f8fafc',
@@ -35,7 +39,9 @@ export default function CreateExcuseForm() {
                 marginBottom: '28px',
             }}
         >
-            <h2 style={{ fontSize: '16px', margin: 0, color: '#0f172a' }}>Ghostwrite a College Excuse / Diplomatic Email</h2>
+            <h2 style={{ fontSize: '16px', margin: 0, color: '#0f172a' }}>
+                Ghostwrite a College Excuse / Diplomatic Email
+            </h2>
 
             <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>
@@ -43,7 +49,15 @@ export default function CreateExcuseForm() {
                 </label>
                 <select
                     name="recipient"
-                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px' }}
+                    defaultValue="Professor"
+                    style={{
+                        width: '100%',
+                        padding: '8px',
+                        borderRadius: '6px',
+                        border: '1px solid #cbd5e1',
+                        fontSize: '14px',
+                        backgroundColor: '#ffffff',
+                    }}
                 >
                     <option value="Professor">Professor</option>
                     <option value="Graduate TA">Graduate TA</option>
@@ -63,7 +77,14 @@ export default function CreateExcuseForm() {
                     required
                     rows={3}
                     placeholder="e.g. My alarm didn't ring and I slept through the 8:40 AM midterm recitation..."
-                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px', boxSizing: 'border-box' }}
+                    style={{
+                        width: '100%',
+                        padding: '8px',
+                        borderRadius: '6px',
+                        border: '1px solid #cbd5e1',
+                        fontSize: '14px',
+                        boxSizing: 'border-box',
+                    }}
                 />
             </div>
 
@@ -84,7 +105,11 @@ export default function CreateExcuseForm() {
                 {isPending ? 'Ghostwriting Email...' : 'Generate Diplomatic Email'}
             </button>
 
-            {errorMsg && <p style={{ margin: 0, color: '#dc2626', fontSize: '13px' }}>{errorMsg}</p>}
+            {errorMsg && (
+                <p style={{ margin: 0, color: '#dc2626', fontSize: '13px', fontWeight: '500' }}>
+                    {errorMsg}
+                </p>
+            )}
         </form>
     );
 }
