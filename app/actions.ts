@@ -26,9 +26,9 @@ export async function generateExcuseAction(formData: FormData): Promise<{ succes
             return { success: false, error: 'GEMINI_API_KEY is not configured on the server.' };
         }
 
-        // Call Gemini with JSON instruction
+        // Update model to gemini-3.8-flash
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-3.8-flash',
             contents: `You are an elite college communications ghostwriter. 
 A student is in this real-life messy situation: "${situation}".
 The email is meant for: "${recipient}".
