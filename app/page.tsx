@@ -23,7 +23,7 @@ export default async function Home() {
     return (
         <main style={{ maxWidth: '640px', margin: '48px auto', padding: '0 20px', fontFamily: 'system-ui, sans-serif' }}>
             <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <h1 style={{ fontSize: '24px', margin: 0 }}>Assignment 3 App</h1>
+                <h1 style={{ fontSize: '24px', margin: 0 }}>Assignment 4 App</h1>
                 <AuthButton user={user} />
             </header>
 
@@ -56,24 +56,39 @@ export default async function Home() {
                         </p>
                     </div>
 
-                    <nav style={{ display: 'flex', gap: '12px' }}>
+                    {/* Navigation buttons for logged-in users */}
+                    <nav style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                        <Link
+                            href="/excuses"
+                            style={{ padding: '10px 16px', backgroundColor: '#6366f1', color: '#ffffff', borderRadius: '6px', textDecoration: 'none', fontWeight: '500' }}
+                        >
+                            Syllabus Diplomat (AI Excuses & Voting) &rarr;
+                        </Link>
                         <Link
                             href="/profile"
                             style={{ padding: '10px 16px', backgroundColor: '#2563eb', color: '#ffffff', borderRadius: '6px', textDecoration: 'none' }}
                         >
-                            Go to Profile Settings
+                            Profile Settings
                         </Link>
                         <Link
                             href="/dashboard"
                             style={{ padding: '10px 16px', backgroundColor: '#10b981', color: '#ffffff', borderRadius: '6px', textDecoration: 'none' }}
                         >
-                            View Protected Route
+                            Protected Dashboard
                         </Link>
                     </nav>
                 </section>
             ) : (
-                <div style={{ padding: '32px', textAlign: 'center', border: '1px dashed #d1d5db', borderRadius: '8px' }}>
-                    <p style={{ color: '#4b5563', marginBottom: '16px' }}>Sign in to access your profile and protected features.</p>
+                <div style={{ padding: '32px', textAlign: 'center', border: '1px dashed #d1d5db', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center' }}>
+                    <p style={{ color: '#4b5563', margin: 0 }}>Sign in with Google to generate AI excuses, customize your profile, and vote on community posts.</p>
+
+                    {/* Also allow logged-out visitors to browse the feed */}
+                    <Link
+                        href="/excuses"
+                        style={{ padding: '10px 16px', backgroundColor: '#6366f1', color: '#ffffff', borderRadius: '6px', textDecoration: 'none', fontWeight: '500' }}
+                    >
+                        Browse Syllabus Diplomat Feed &rarr;
+                    </Link>
                 </div>
             )}
         </main>
