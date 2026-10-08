@@ -26,10 +26,7 @@ export async function generateExcuseAction(formData: FormData): Promise<{ succes
             return { success: false, error: 'GEMINI_API_KEY is not configured on the server.' };
         }
 
-        // Update model to gemini-3.8-flash
-        const response = await ai.models.generateContent({
-            model: 'gemini-3.8-flash',
-            contents: `You are an elite college communications ghostwriter. 
+        const promptText = `You are an elite college communications ghostwriter. 
 A student is in this real-life messy situation: "${situation}".
 The email is meant for: "${recipient}".
 
@@ -38,24 +35,57 @@ Respond strictly with valid JSON with these exact keys:
   "subject": "Clear, professional, polite email subject line",
   "diplomatic_email": "A polished, courteous, completely professional email asking for grace, extension, or understanding without oversharing.",
   "unfiltered_reality": "A hilarious, 2-sentence painfully honest translation of what the student is actually thinking/dealing with."
-}`,
-            config: {
-                responseMimeType: 'application/json',
-            },
-        });
+}`;
+
+        const candidateModels = [
+            'gemini-3.8-flash',
+            'gemini-3.7-flash',
+            'gemini-3.6-flash',
+            'gemini-3.5-flash',
+            'gemini-3.5-flash-lite',
+            'gemini-3.1-flash-lite',
+        ];
+
+        let response: any = null;
+        let lastError: any = null;
+
+        for (const model of candidateModels) {
+            try {
+                response = await ai.models.generateContent({
+                    model,
+                    contents: promptText,
+                    config: {
+                        responseMimeType: 'application/json',
+                    },
+                });
+                if (response?.text) {
+                    break;
+                }
+            } catch (err: any) {
+                lastError = err;
+                console.warn(`Model ${model} failed (${err?.message || err}). Trying next candidate...`);
+            }
+        }
+
+        if (!response || !response.text) {
+            return {
+                success: false,
+                error: lastError?.message || 'All candidate models are temporarily unavailable. Please try again shortly.',
+            };
+        }
 
         let rawText = response.text || '{}';
-        // Strip markdown code fences if Gemini wraps output in ```json ... ```
+        // Strip markdown code fences if wrapped in ```json ... ```
         rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
 
         let parsed: { subject?: string; diplomatic_email?: string; unfiltered_reality?: string } = {};
         try {
             parsed = JSON.parse(rawText);
         } catch {
-            return { success: false, error: 'Failed to parse AI output. Please try again.' };
+            return { success: false, error: 'Failed to parse AI output into valid JSON. Please retry.' };
         }
 
-        // Insert into Supabase
+        // Insert generation into Supabase table
         const { error: insertError } = await supabase.from('email_excuses').insert({
             user_id: user.id,
             situation: situation.trim(),
