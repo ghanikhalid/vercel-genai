@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import type { User } from "@supabase/supabase-js";
+import { IconUser } from "@/app/components/Icons";
+import SiteHeader from "@/app/components/SiteHeader";
 import { createClient } from "@/lib/supabaseBrowser";
 
 export default function ProfilePage() {
@@ -11,7 +13,7 @@ export default function ProfilePage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -21,18 +23,18 @@ export default function ProfilePage() {
   useEffect(() => {
     async function loadProfile() {
       const {
-        data: { user },
+        data: { user: currentUser },
       } = await supabase.auth.getUser();
-      if (!user) {
+      if (!currentUser) {
         router.push("/");
         return;
       }
-      setUserId(user.id);
+      setUser(currentUser);
 
       const { data } = await supabase
         .from("profiles")
         .select("first_name, last_name, avatar_url")
-        .eq("id", user.id)
+        .eq("id", currentUser.id)
         .single();
 
       if (data) {
@@ -47,7 +49,7 @@ export default function ProfilePage() {
 
   const handleSave = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!userId) return;
+    if (!user) return;
     setSaving(true);
     setStatusMessage("");
 
@@ -55,7 +57,7 @@ export default function ProfilePage() {
 
     if (file) {
       const fileExt = file.name.split(".").pop();
-      const filePath = `${userId}-${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}-${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from("avatars")
@@ -76,7 +78,7 @@ export default function ProfilePage() {
     }
 
     const { error: updateError } = await supabase.from("profiles").upsert({
-      id: userId,
+      id: user.id,
       first_name: firstName,
       last_name: lastName,
       avatar_url: uploadedAvatarUrl,
@@ -87,74 +89,143 @@ export default function ProfilePage() {
     if (updateError) {
       setStatusMessage(`Save failed: ${updateError.message}`);
     } else {
-      setStatusMessage("Profile successfully updated!");
+      setStatusMessage("Profile updated.");
       router.refresh();
     }
   };
 
-  if (loading) {
-    return (
-      <main className="page">
-        <p className="muted">Loading profile...</p>
-      </main>
-    );
-  }
-
   return (
-    <main className="page">
-      <Link href="/" className="muted">
-        ← Home
-      </Link>
-      <p className="kicker">Identity</p>
-      <h1 className="display" style={{ fontSize: 72 }}>
-        PROFILE
-      </h1>
+    <div className="page-wrap">
+      <SiteHeader user={user} active="profile" />
 
-      {avatarUrl && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img className="avatar" src={avatarUrl} alt="User avatar" />
-      )}
+      <main className="main-content">
+        <div className="page-header-row">
+          <div>
+            <span className="kicker">Member Identity</span>
+            <h1 className="page-title">
+              Club <span className="text-gradient">Profile</span>
+            </h1>
+          </div>
+          <p className="page-sub">
+            Your display name appears under every photo you caption on the community wall.
+          </p>
+        </div>
 
-      <form onSubmit={handleSave} className="stack" style={{ marginTop: 24, maxWidth: 520 }}>
-        <div className="field">
-          <label htmlFor="firstName">First name</label>
-          <input
-            id="firstName"
-            type="text"
-            required
-            value={firstName}
-            onChange={(event) => setFirstName(event.target.value)}
-          />
-        </div>
-        <div className="field">
-          <label htmlFor="lastName">Last name</label>
-          <input
-            id="lastName"
-            type="text"
-            required
-            value={lastName}
-            onChange={(event) => setLastName(event.target.value)}
-          />
-        </div>
-        <div className="field">
-          <label htmlFor="photo">Portrait</label>
-          <input
-            id="photo"
-            type="file"
-            accept="image/*"
-            onChange={(event) => setFile(event.target.files?.[0] || null)}
-          />
-        </div>
-        <button className="btn btn-blood" type="submit" disabled={saving}>
-          {saving ? "Saving..." : "Save Profile"}
-        </button>
-      </form>
+        {loading ? (
+          <div className="empty-card">
+            <p className="empty-sub">Loading your profile...</p>
+          </div>
+        ) : (
+          <form
+            onSubmit={handleSave}
+            className="upload-studio"
+            style={{ maxWidth: "600px" }}
+          >
+            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                {avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={avatarUrl}
+                    alt="User avatar"
+                    style={{
+                      width: "64px",
+                      height: "64px",
+                      borderRadius: "18px",
+                      objectFit: "cover",
+                      border: "1px solid var(--surface-border-bright)",
+                    }}
+                  />
+                ) : (
+                  <div className="bento-icon" style={{ width: "64px", height: "64px" }}>
+                    <IconUser size={26} />
+                  </div>
+                )}
+                <div>
+                  <span className="kicker">Portrait</span>
+                  <p className="card-copy" style={{ margin: "4px 0 0" }}>
+                    {user?.email}
+                  </p>
+                </div>
+              </div>
 
-      {statusMessage && (
-        <p className={statusMessage.toLowerCase().includes("error") || statusMessage.toLowerCase().includes("fail") ? "err" : "ok"}>
-          {statusMessage}
-        </p>
-      )}
-    </main>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                <label style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  <span className="kicker">First Name</span>
+                  <input
+                    type="text"
+                    required
+                    value={firstName}
+                    onChange={(event) => setFirstName(event.target.value)}
+                    style={{
+                      padding: "12px 14px",
+                      borderRadius: "12px",
+                      background: "rgba(255, 255, 255, 0.04)",
+                      border: "1px solid var(--surface-border)",
+                      color: "var(--text-main)",
+                      fontSize: "0.95rem",
+                    }}
+                  />
+                </label>
+
+                <label style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  <span className="kicker">Last Name</span>
+                  <input
+                    type="text"
+                    required
+                    value={lastName}
+                    onChange={(event) => setLastName(event.target.value)}
+                    style={{
+                      padding: "12px 14px",
+                      borderRadius: "12px",
+                      background: "rgba(255, 255, 255, 0.04)",
+                      border: "1px solid var(--surface-border)",
+                      color: "var(--text-main)",
+                      fontSize: "0.95rem",
+                    }}
+                  />
+                </label>
+              </div>
+
+              <label style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <span className="kicker">Upload New Portrait</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(event) => setFile(event.target.files?.[0] || null)}
+                  style={{
+                    padding: "10px 12px",
+                    borderRadius: "12px",
+                    background: "rgba(255, 255, 255, 0.03)",
+                    border: "1px solid var(--surface-border)",
+                    color: "var(--text-secondary)",
+                    fontSize: "0.86rem",
+                  }}
+                />
+              </label>
+
+              <div>
+                <button className="btn-primary" type="submit" disabled={saving}>
+                  <span>{saving ? "Saving..." : "Save Profile"}</span>
+                </button>
+              </div>
+
+              {statusMessage && (
+                <p
+                  className={
+                    statusMessage.toLowerCase().includes("error") ||
+                    statusMessage.toLowerCase().includes("fail")
+                      ? "form-error"
+                      : "kicker"
+                  }
+                >
+                  {statusMessage}
+                </p>
+              )}
+            </div>
+          </form>
+        )}
+      </main>
+    </div>
   );
 }

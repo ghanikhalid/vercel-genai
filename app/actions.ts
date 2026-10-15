@@ -20,15 +20,7 @@ const CANDIDATE_MODELS = [
   "gemini-3.1-flash-lite",
 ];
 
-const IMAGE_MODELS = [
-  "gemini-3.1-flash-image",
-  "gemini-3.1-flash-lite-image",
-  "gemini-3-pro-image",
-  "gemini-2.5-flash-image",
-];
-
 export interface DailyFortuneRecord {
-  image_url: string;
   caption: string;
   prophecy: string;
   vibe_tag: string;
@@ -36,84 +28,30 @@ export interface DailyFortuneRecord {
   rolled_at: string;
 }
 
-const MEME_ARCHETYPES = [
+const FORTUNE_THEMES = [
   {
-    title: "Racoon holding iced coffee at 3 AM staring into a glowing laptop",
-    scenePrompt:
-      "A hilarious vibrant 3D Pixar-style illustration of an exhausted raccoon in a designer hoodie clutching an oversized iced coffee in front of a glowing laptop at 3 AM, dramatic neon studio lighting, expressive wide eyes, meme template aesthetic, no text in image.",
-    theme: {
-      bgA: "#ff2e93",
-      bgB: "#5b2eff",
-      accent: "#00f5d4",
-      character: "🦝",
-      prop: "🧋💻",
-      badge: "3:14 AM PRODUCTIVITY SPIRAL",
-    },
+    scenario: "Staring at a glowing laptop at 3 AM while clutching an oversized iced coffee",
+    badge: "3:14 AM PRODUCTIVITY SPIRAL",
   },
   {
-    title: "Golden retriever wearing sunglasses in a flaming convertible saying everything is fine",
-    scenePrompt:
-      "A glossy 3D render of an unbothered golden retriever wearing clout sunglasses sitting in a pink convertible while chaotic confetti and tiny cartoon flames swirl around in the background, bright saturated colors, funny meme vibe, no text in image.",
-    theme: {
-      bgA: "#ff7b00",
-      bgB: "#ff0055",
-      accent: "#ffee32",
-      character: "🐕‍🦺",
-      prop: "🕶️🔥",
-      badge: "UNBOTHERED DELUSION MODE",
-    },
+    scenario: "Sitting calmly in traffic while three minor schedule conflicts unfold at once",
+    badge: "UNBOTHERED DELUSION MODE",
   },
   {
-    title: "Dramatic cat in a tiny business suit pointing at a chaotic conspiracy whiteboard",
-    scenePrompt:
-      "A funny hyper-detailed 3D studio portrait of a chubby orange cat wearing a tiny rumpled business suit, frantically gesturing with a laser pointer at a whiteboard covered in red yarn and sticky notes, colorful rim lighting, meme format, no text in image.",
-    theme: {
-      bgA: "#00bbf9",
-      bgB: "#7b2cbf",
-      accent: "#fee440",
-      character: "🐱",
-      prop: "📊🧶",
-      badge: "CEO OF OVERTHINKING",
-    },
+    scenario: "Explaining a wildly overcomplicated life plan as if it were a simple two-step errand",
+    badge: "CEO OF OVERTHINKING",
   },
   {
-    title: "Frog on a lily pad wearing noise-canceling headphones ignoring 47 unread messages",
-    scenePrompt:
-      "A sleek 3D illustration of a smug green frog lounging on a neon pool float wearing oversized silver noise-canceling headphones while floating notification bubbles bounce harmlessly off a forcefield, vibrant Apple-keynote lighting, no text in image.",
-    theme: {
-      bgA: "#00f5d4",
-      bgB: "#2ec4b6",
-      accent: "#ff5d8f",
-      character: "🐸",
-      prop: "🎧📵",
-      badge: "DO NOT DISTURB CHAMPION",
-    },
+    scenario: "Wearing noise-canceling headphones and politely ignoring 47 unread notifications",
+    badge: "DO NOT DISTURB CHAMPION",
   },
   {
-    title: "Hamster staring at a bank app after buying one $9 artisanal matcha",
-    scenePrompt:
-      "A comedic close-up 3D render of a tiny wide-eyed hamster holding a fancy green iced matcha latte while staring in shock at a glowing smartphone screen, dramatic cyan and magenta lighting, cinematic depth of field, no text in image.",
-    theme: {
-      bgA: "#8338ec",
-      bgB: "#3a86ff",
-      accent: "#b5f44a",
-      character: "🐹",
-      prop: "🍵💸",
-      badge: "FINANCIALLY QUESTIONABLE VIBES",
-    },
+    scenario: "Checking a banking app right after justifying an artisanal $9 iced matcha",
+    badge: "LITTLE TREAT ECONOMICS",
   },
   {
-    title: "Pigeon in puffer jacket strutting through chaos like main character",
-    scenePrompt:
-      "A stylish 3D render of a New York pigeon wearing an iridescent holographic puffer jacket and tiny sneakers strutting confidently down a crosswalk while papers fly everywhere behind it, ultra-colorful studio lighting, no text in image.",
-    theme: {
-      bgA: "#f72585",
-      bgB: "#4361ee",
-      accent: "#4cc9f0",
-      character: "🐦",
-      prop: "🧥✨",
-      badge: "MAIN CHARACTER SYNDROME",
-    },
+    scenario: "Walking down the street with main-character confidence despite forgetting why you left the house",
+    badge: "MAIN CHARACTER SYNDROME",
   },
 ];
 
@@ -132,53 +70,6 @@ function parseCaption(raw: string) {
     // fall through to plain text
   }
   return cleaned.replace(/^["']|["']$/g, "").trim();
-}
-
-function escapeXml(str: string) {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
-}
-
-function buildVibrantMemeSvgBuffer(archetype: (typeof MEME_ARCHETYPES)[number]) {
-  const { bgA, bgB, accent, character, prop, badge } = archetype.theme;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 720" width="900" height="720">
-  <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="${bgA}" />
-      <stop offset="55%" stop-color="${bgB}" />
-      <stop offset="100%" stop-color="#090b16" />
-    </linearGradient>
-    <radialGradient id="orb1" cx="22%" cy="24%" r="48%">
-      <stop offset="0%" stop-color="${accent}" stop-opacity="0.72" />
-      <stop offset="100%" stop-color="${accent}" stop-opacity="0" />
-    </radialGradient>
-    <radialGradient id="orb2" cx="80%" cy="72%" r="45%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35" />
-      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
-    </radialGradient>
-    <linearGradient id="glass" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.28" />
-      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.06" />
-    </linearGradient>
-  </defs>
-  <rect width="900" height="720" fill="url(#bg)" />
-  <circle cx="210" cy="180" r="320" fill="url(#orb1)" />
-  <circle cx="720" cy="520" r="290" fill="url(#orb2)" />
-  <g opacity="0.22" stroke="#ffffff" stroke-width="1.5" fill="none">
-    <ellipse cx="450" cy="360" rx="370" ry="150" transform="rotate(-14 450 360)" />
-    <ellipse cx="450" cy="360" rx="370" ry="150" transform="rotate(22 450 360)" />
-  </g>
-  <rect x="145" y="92" width="610" height="460" rx="46" fill="url(#glass)" stroke="#ffffff" stroke-opacity="0.4" stroke-width="2" />
-  <rect x="250" y="122" width="400" height="42" rx="21" fill="#090b16" fill-opacity="0.55" stroke="${accent}" stroke-opacity="0.7" />
-  <text x="450" y="149" text-anchor="middle" fill="${accent}" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="800" letter-spacing="3">${escapeXml(badge)}</text>
-  <text x="415" y="370" text-anchor="middle" font-size="185">${character}</text>
-  <text x="575" y="425" text-anchor="middle" font-size="92">${prop}</text>
-</svg>`;
-  return Buffer.from(svg, "utf-8");
 }
 
 async function uploadToStorage(
@@ -319,8 +210,31 @@ export async function castVoteAction(
     if (!user) {
       return { success: false, error: "You must be signed in to vote." };
     }
-    if (voteValue !== 1 && voteValue !== -1) {
+    if (voteValue !== 1 && voteValue !== -1 && voteValue !== 0) {
       return { success: false, error: "Invalid vote." };
+    }
+
+    // Check if the user already has this exact vote — if so, or if voteValue === 0, remove the vote
+    const { data: existingVote } = await supabase
+      .from("caption_votes")
+      .select("vote_value")
+      .eq("image_id", imageId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (voteValue === 0 || existingVote?.vote_value === voteValue) {
+      const { error: deleteError } = await supabase
+        .from("caption_votes")
+        .delete()
+        .eq("image_id", imageId)
+        .eq("user_id", user.id);
+
+      if (deleteError) {
+        return { success: false, error: `Could not remove vote: ${deleteError.message}` };
+      }
+
+      revalidatePath("/gallery");
+      return { success: true };
     }
 
     const { error } = await supabase.from("caption_votes").upsert(
@@ -363,11 +277,10 @@ export async function rollDailyFortuneAction(): Promise<{
     const cookieStore = await cookies();
     const cookieKey = `prism_fortune_${user.id}`;
 
-    // Check existing roll in database (or fallback cookie if table isn't migrated yet)
     let existingRoll: DailyFortuneRecord | null = null;
     const { data: dbRow, error: selectErr } = await supabase
       .from("daily_meme_fortunes")
-      .select("image_url, caption, prophecy, vibe_tag, lucky_stat, rolled_at")
+      .select("caption, prophecy, vibe_tag, lucky_stat, rolled_at")
       .eq("user_id", user.id)
       .maybeSingle();
 
@@ -402,19 +315,18 @@ export async function rollDailyFortuneAction(): Promise<{
       return { success: false, error: "GEMINI_API_KEY is not configured on the server." };
     }
 
-    const archetype = MEME_ARCHETYPES[Math.floor(Math.random() * MEME_ARCHETYPES.length)];
+    const theme = FORTUNE_THEMES[Math.floor(Math.random() * FORTUNE_THEMES.length)];
 
-    // 1. Generate humorous relatable caption + fortune-cookie prophecy for the user's day
-    const textPrompt = `You are a chaotic, razor-sharp, hilariously relatable fortune cookie oracle.
-Today's visual meme scene for the user is: "${archetype.title}".
+    const textPrompt = `You are a razor-sharp, hilariously relatable fortune cookie oracle.
+Today's relatable life mood for the user is: "${theme.scenario}".
 
-Write a meme caption and a daily prophecy telling the user that THIS exact meme is how their day is going to unfold today.
+Write a text-only meme headline and a daily fortune-cookie prophecy telling the user that THIS exact vibe is how their day is going to unfold today. Do not include any emojis.
 Respond strictly in valid JSON with these exact keys:
 {
-  "caption": "Short punchy top/bottom style meme caption (max 11 words) that lands a joke on this scene",
-  "prophecy": "2 witty, relatable sentences predicting how their actual day today will mirror this meme in hilarious detail.",
-  "vibe_tag": "A 2-3 word all-caps aura label (e.g. CAFFEINATED HUBRIS)",
-  "lucky_stat": "A funny stat for today (e.g. 94% CHANCE OF SIDE-EYE)"
+  "caption": "Short punchy meme headline (max 12 words) that lands a joke on this mood, no emojis",
+  "prophecy": "2 witty, relatable sentences predicting how their actual day today will mirror this exact energy in hilarious detail, no emojis.",
+  "vibe_tag": "A 2-3 word all-caps aura label (e.g. CAFFEINATED HUBRIS), no emojis",
+  "lucky_stat": "A funny stat for today (e.g. 94% CHANCE OF SIDE-EYE), no emojis"
 }`;
 
     let parsedFortune: {
@@ -445,7 +357,7 @@ Respond strictly in valid JSON with these exact keys:
 
     const caption = (
       parsedFortune.caption ||
-      "ME PRETENDING MY 47 OPEN TABS ARE A SYSTEM"
+      "ME PRETENDING MY 47 OPEN TABS ARE A CAREFULLY ENGINEERED SYSTEM"
     )
       .replace(/^["']|["']$/g, "")
       .slice(0, 280);
@@ -455,53 +367,13 @@ Respond strictly in valid JSON with these exact keys:
       "The universe has decided that today you will confidently improvise your way through three minor plot twists while holding an overpriced beverage. Embrace the chaos—your comedic timing will save you by 4 PM."
     ).slice(0, 400);
 
-    const vibe_tag = (parsedFortune.vibe_tag || archetype.theme.badge).toUpperCase().slice(0, 48);
+    const vibe_tag = (parsedFortune.vibe_tag || theme.badge).toUpperCase().slice(0, 48);
     const lucky_stat = (parsedFortune.lucky_stat || "88% UNBOTHERED ENERGY").toUpperCase().slice(0, 48);
-
-    // 2. Try generating a custom AI meme illustration via Gemini image models; fallback to vibrant SVG art uploaded to Supabase Storage
-    let imageBytes: Buffer | null = null;
-    let mimeType = "image/png";
-    let ext = "png";
-
-    for (const imgModel of IMAGE_MODELS) {
-      try {
-        const imgRes: any = await ai.models.generateContent({
-          model: imgModel,
-          contents: archetype.scenePrompt,
-        });
-        const parts = imgRes?.candidates?.[0]?.content?.parts ?? [];
-        const inlinePart = parts.find((p: any) => p?.inlineData?.data);
-        if (inlinePart?.inlineData?.data) {
-          imageBytes = Buffer.from(inlinePart.inlineData.data, "base64");
-          mimeType = inlinePart.inlineData.mimeType || "image/png";
-          ext = mimeType.split("/")[1] || "png";
-          break;
-        }
-      } catch {
-        // fallback if image model isn't enabled on this key
-      }
-    }
-
-    if (!imageBytes) {
-      imageBytes = buildVibrantMemeSvgBuffer(archetype);
-      mimeType = "image/svg+xml";
-      ext = "svg";
-    }
 
     await supabase.from("profiles").upsert({ id: user.id }, { onConflict: "id" });
 
-    const storagePath = `${user.id}/fortune-${Date.now()}.${ext}`;
-    let imageUrl = "";
-    try {
-      const uploaded = await uploadToStorage(supabase, storagePath, imageBytes, mimeType);
-      imageUrl = uploaded.imageUrl;
-    } catch {
-      imageUrl = `data:${mimeType};base64,${imageBytes.toString("base64")}`;
-    }
-
     const rolled_at = new Date().toISOString();
     const fortuneRecord: DailyFortuneRecord = {
-      image_url: imageUrl,
       caption,
       prophecy,
       vibe_tag,
@@ -509,13 +381,25 @@ Respond strictly in valid JSON with these exact keys:
       rolled_at,
     };
 
-    await supabase.from("daily_meme_fortunes").upsert(
+    const { error: upsertErr } = await supabase.from("daily_meme_fortunes").upsert(
       {
         user_id: user.id,
         ...fortuneRecord,
       },
       { onConflict: "user_id" }
     );
+
+    if (upsertErr) {
+      // Fallback if the user still has the older table with image_url NOT NULL
+      await supabase.from("daily_meme_fortunes").upsert(
+        {
+          user_id: user.id,
+          image_url: "",
+          ...fortuneRecord,
+        },
+        { onConflict: "user_id" }
+      );
+    }
 
     cookieStore.set(cookieKey, JSON.stringify(fortuneRecord), {
       httpOnly: true,

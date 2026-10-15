@@ -30,7 +30,6 @@ create table public.caption_votes (
 
 create table public.daily_meme_fortunes (
     user_id uuid primary key references public.profiles (id) on delete cascade,
-    image_url text not null,
     caption text not null check (char_length(caption) between 1 and 280),
     prophecy text not null check (char_length(prophecy) between 1 and 400),
     vibe_tag text not null default 'CHAOS ENERGY',
@@ -52,6 +51,7 @@ drop policy if exists "captioned_images_delete_own" on public.captioned_images;
 drop policy if exists "caption_votes_select_authenticated" on public.caption_votes;
 drop policy if exists "caption_votes_upsert_own" on public.caption_votes;
 drop policy if exists "caption_votes_update_own" on public.caption_votes;
+drop policy if exists "caption_votes_delete_own" on public.caption_votes;
 drop policy if exists "daily_meme_fortunes_select_own" on public.daily_meme_fortunes;
 drop policy if exists "daily_meme_fortunes_insert_own" on public.daily_meme_fortunes;
 drop policy if exists "daily_meme_fortunes_update_own" on public.daily_meme_fortunes;
@@ -102,6 +102,11 @@ create policy "caption_votes_update_own"
     to authenticated
     using (auth.uid() = user_id)
     with check (auth.uid() = user_id);
+
+create policy "caption_votes_delete_own"
+    on public.caption_votes for delete
+    to authenticated
+    using (auth.uid() = user_id);
 
 create policy "daily_meme_fortunes_select_own"
     on public.daily_meme_fortunes for select

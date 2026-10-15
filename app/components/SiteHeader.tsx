@@ -1,40 +1,58 @@
-"use client";
-
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import AuthButton from "./AuthButton";
+import { IconCamera, IconCookie, IconSparkle, IconUser } from "./Icons";
 
-export default function SiteHeader({ user }: { user: User | null }) {
-  const pathname = usePathname();
-
+export default function SiteHeader({
+  user,
+  active,
+}: {
+  user: User | null;
+  active?: "home" | "gallery" | "dashboard" | "profile";
+}) {
   return (
-    <header className="site-header-wrap">
-      <div className="site-header">
-        <Link href="/" className="site-brand">
-          <span className="brand-orb" aria-hidden="true" />
-          <span className="brand-text">
-            <strong>PRISM POP</strong>
-            <em>AI Humor Studio</em>
-          </span>
-        </Link>
+    <header className="site-header">
+      <Link href="/" className="brand-mark">
+        <span className="brand-orb" aria-hidden="true" />
+        <span>PRISM POP</span>
+        <span className="brand-tag">CHIC EDITION</span>
+      </Link>
 
-        <nav className="site-nav">
-          {user && (
-            <>
-              <Link href="/gallery" data-active={pathname === "/gallery"}>
-                ✨ Caption Wall
-              </Link>
-              <Link href="/dashboard" data-active={pathname === "/dashboard"}>
-                🥠 Daily Fortune
-              </Link>
-              <Link href="/profile" data-active={pathname === "/profile"}>
-                👤 Profile
-              </Link>
-            </>
-          )}
-          <AuthButton user={user} />
-        </nav>
+      <nav className="site-nav" aria-label="Main navigation">
+        <Link
+          href="/"
+          className={`nav-pill ${active === "home" ? "active" : ""}`}
+        >
+          <IconSparkle size={14} />
+          <span>Overview</span>
+        </Link>
+        <Link
+          href="/gallery"
+          className={`nav-pill ${active === "gallery" ? "active" : ""}`}
+        >
+          <IconCamera size={14} />
+          <span>Caption Wall</span>
+        </Link>
+        <Link
+          href="/dashboard"
+          className={`nav-pill ${active === "dashboard" ? "active" : ""}`}
+        >
+          <IconCookie size={14} />
+          <span>Daily Fortune</span>
+        </Link>
+        {user && (
+          <Link
+            href="/profile"
+            className={`nav-pill ${active === "profile" ? "active" : ""}`}
+          >
+            <IconUser size={14} />
+            <span>Profile</span>
+          </Link>
+        )}
+      </nav>
+
+      <div className="header-actions">
+        <AuthButton user={user} />
       </div>
     </header>
   );

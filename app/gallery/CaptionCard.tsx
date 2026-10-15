@@ -2,78 +2,106 @@
 
 import { useState, useTransition } from "react";
 import { castVoteAction } from "@/app/actions";
+import { IconVoteDown, IconVoteUp } from "@/app/components/Icons";
 
-export default function CaptionCard({
-  image,
-  score,
-  userVote,
-}: {
-  image: {
-    id: string;
-    image_url: string;
-    caption: string;
-    authorName: string;
-  };
+export interface CaptionedPhotoItem {
+  id: string;
+  image_url: string;
+  caption: string;
+  created_at: string;
+  author_name: string;
   score: number;
-  userVote: number | null;
-}) {
+  upvotes: number;
+  downvotes: number;
+  userVote: number;
+}
+
+export default function CaptionCard({ image }: { image: CaptionedPhotoItem }) {
   const [isPending, startTransition] = useTransition();
-  const [tilt, setTilt] = useState({ rx: 0, ry: 0 });
+  const [error, setError] = useState<string | null>(null);
+  const [optimisticVote, setOptimisticVote] = useState<number>(image.userVote);
 
-  const handleVote = (value: number) => {
+  // Sync optimistic vote if server prop changes
+  const activeVote = isPending ? optimisticVote : image.userVote;
+
+  const handleVote = (val: 1 | -1) => {
+    setError(null);
+    // Clicking the already-selected vote button retracts the vote (0)
+    const nextVote = activeVote === val ? 0 : val;
+    setOptimisticVote(nextVote);
+
     startTransition(async () => {
-      await castVoteAction(image.id, value);
-    });
-  };
-
-  const handleMouseMove = (event: React.MouseEvent<HTMLElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = (event.clientX - rect.left) / rect.width;
-    const y = (event.clientY - rect.top) / rect.height;
-    setTilt({
-      rx: (0.5 - y) * 12,
-      ry: (x - 0.5) * 12,
+      const res = await castVoteAction(image.id, nextVote);
+      if (!res.success) {
+        setOptimisticVote(image.userVote);
+        setError(res.error || "Could not record vote.");
+      }
     });
   };
 
   return (
-    <article
-      className="caption-card"
-      onMouseMove={handleMouseMove}
-      onMouseLeave={() => setTilt({ rx: 0, ry: 0 })}
-      style={{
-        transform: `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg)`,
-      }}
-    >
-      <div className="frame">
+    <article className="meme-card">
+      <div className="meme-stage">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={image.image_url} alt={image.caption} />
-        <p className="frame-caption">{image.caption}</p>
+        <img
+          src={image.image_url}
+          alt={image.caption}
+          className="meme-img"
+          loading="lazy"
+        />
+        <div className="meme-scrim" />
+        <p className="meme-overlay-caption">{image.caption}</p>
       </div>
-      <div className="meta-row">
-        <span className="author">By {image.authorName}</span>
-        <div className="votes">
+
+      <footer className="meme-bar">
+        <div className="meme-credit">
+          <span className="meme-author">{image.author_name}</span>
+          <time className="meme-date">
+            {new Date(image.created_at).toLocaleDateString(undefined, {
+              month: "short",
+              day: "numeric",
+            })}
+          </time>
+        </div>
+
+        <div className="vote-pill" role="group" aria-label="Vote on this caption">
           <button
             type="button"
+            disabled={isPending}
             onClick={() => handleVote(1)}
-            disabled={isPending}
-            data-on={userVote === 1 ? "up" : undefined}
-            title="Upvote"
+            className={`vote-btn up ${activeVote === 1 ? "active" : ""}`}
+            aria-label={activeVote === 1 ? "Remove upvote" : "Upvote"}
+            aria-pressed={activeVote === 1}
+            title={activeVote === 1 ? "Click again to take back your vote" : "Upvote"}
           >
-            ▲
+            <IconVoteUp size={15} />
+            <span>{image.upvotes}</span>
           </button>
-          <span className="score">{score}</span>
+
+          <span
+            className={`vote-net ${
+              image.score > 0 ? "pos" : image.score < 0 ? "neg" : ""
+            }`}
+          >
+            {image.score > 0 ? `+${image.score}` : image.score}
+          </span>
+
           <button
             type="button"
-            onClick={() => handleVote(-1)}
             disabled={isPending}
-            data-on={userVote === -1 ? "down" : undefined}
-            title="Downvote"
+            onClick={() => handleVote(-1)}
+            className={`vote-btn down ${activeVote === -1 ? "active" : ""}`}
+            aria-label={activeVote === -1 ? "Remove downvote" : "Downvote"}
+            aria-pressed={activeVote === -1}
+            title={activeVote === -1 ? "Click again to take back your vote" : "Downvote"}
           >
-            ▼
+            <IconVoteDown size={15} />
+            <span>{image.downvotes}</span>
           </button>
         </div>
-      </div>
+      </footer>
+
+      {error && <p className="meme-vote-error">{error}</p>}
     </article>
   );
 }

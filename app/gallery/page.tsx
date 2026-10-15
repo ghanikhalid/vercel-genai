@@ -1,9 +1,11 @@
-import { redirect } from "next/navigation";
+import AuthButton from "@/app/components/AuthButton";
+import { IconCamera } from "@/app/components/Icons";
+import SiteHeader from "@/app/components/SiteHeader";
 import { createClient } from "@/lib/supabaseServer";
-import CaptionCard from "./CaptionCard";
+import CaptionCard, { type CaptionedPhotoItem } from "./CaptionCard";
 import UploadForm from "./UploadForm";
 
-export const revalidate = 0;
+export const dynamic = "force-dynamic";
 
 export default async function GalleryPage() {
   const supabase = await createClient();
@@ -12,10 +14,26 @@ export default async function GalleryPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/");
+    return (
+      <div className="page-wrap">
+        <SiteHeader user={null} active="gallery" />
+        <main className="main-content">
+          <section className="gate-card">
+            <span className="kicker">Members Only</span>
+            <h1 className="gate-title">Sign in to view &amp; vote on captions.</h1>
+            <p className="gate-copy">
+              The Caption Wall is a private community studio. Sign in with Google to upload photos, generate AI meme captions, and vote on the feed.
+            </p>
+            <div className="gate-actions">
+              <AuthButton user={null} />
+            </div>
+          </section>
+        </main>
+      </div>
+    );
   }
 
-  const { data: images, error: imagesError } = await supabase
+  const { data: rawImages, error: imagesError } = await supabase
     .from("captioned_images")
     .select(
       `
@@ -34,7 +52,7 @@ export default async function GalleryPage() {
     { first_name: string | null; last_name: string | null }
   >();
   const authorIds = [
-    ...new Set((images ?? []).map((item) => item.user_id).filter(Boolean)),
+    ...new Set((rawImages ?? []).map((item) => item.user_id).filter(Boolean)),
   ];
   if (authorIds.length > 0) {
     const { data: profiles } = await supabase
@@ -46,78 +64,98 @@ export default async function GalleryPage() {
     }
   }
 
+  const items: CaptionedPhotoItem[] = (rawImages ?? []).map((row) => {
+    const votes = (row.caption_votes ?? []) as Array<{
+      user_id: string;
+      vote_value: number;
+    }>;
+    let upvotes = 0;
+    let downvotes = 0;
+    let userVote = 0;
+
+    for (const v of votes) {
+      if (v.vote_value === 1) upvotes += 1;
+      if (v.vote_value === -1) downvotes += 1;
+      if (v.user_id === user.id) userVote = v.vote_value;
+    }
+
+    const prof = profileById.get(row.user_id);
+    const fullName = [prof?.first_name, prof?.last_name]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
+
+    return {
+      id: row.id,
+      image_url: row.image_url,
+      caption: row.caption,
+      created_at: row.created_at,
+      author_name: fullName || "Club Member",
+      score: upvotes - downvotes,
+      upvotes,
+      downvotes,
+      userVote,
+    };
+  });
+
+  items.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
+
   return (
-    <main className="page">
-      <section className="section-hero">
-        <span className="pill-badge">
-          <span className="pill-dot" />
-          Community Meme Studio
-        </span>
-        <h1 className="hero-title">
-          Drop a Photo.{" "}
-          <span className="gradient-text">Stamp the Punchline.</span>
-        </h1>
-        <p className="lede">
-          Upload any picture. Gemini inspects the exact scene, writes a funny or
-          painfully relatable caption that fits the frame, and superimposes it
-          for the room to rate.
-        </p>
-      </section>
+    <div className="page-wrap">
+      <SiteHeader user={user} active="gallery" />
 
-      <UploadForm />
+      <main className="main-content">
+        <div className="page-header-row">
+          <div>
+            <span className="kicker">Community Meme Studio</span>
+            <h1 className="page-title">
+              Drop a photo. <span className="text-gradient">Stamp the punchline.</span>
+            </h1>
+          </div>
+          <p className="page-sub">
+            Gemini inspects the exact objects, expressions, and awkward timing in your photo and burns a relatable caption onto the frame. Click an active vote button again anytime to take back your vote.
+          </p>
+        </div>
 
-      <hr className="rule" />
-
-      <section className="stack">
-        <span className="kicker">Community Feed &amp; Live Rankings</span>
+        <UploadForm />
 
         {imagesError && (
-          <p className="err">
+          <div className="schema-banner">
+            <strong>Database setup required:</strong>{" "}
             {imagesError.message.includes("captioned_images")
-              ? "Run supabase/schema.sql in the Supabase SQL editor to create the caption tables and RLS policies."
+              ? "Run supabase/schema.sql in your Supabase SQL Editor to create the captioned_images & caption_votes tables."
               : imagesError.message}
-          </p>
-        )}
-
-        {!imagesError && (!images || images.length === 0) && (
-          <div className="glass-card empty-fortune-card">
-            <p className="empty-title">No Captioned Photos Yet</p>
-            <p className="muted">
-              Upload the first picture above and let Gemini roast it.
-            </p>
           </div>
         )}
 
-        <div className="gallery">
-          {images?.map((item) => {
-            const votes = item.caption_votes ?? [];
-            const upvotes = votes.filter((vote) => vote.vote_value === 1).length;
-            const downvotes = votes.filter(
-              (vote) => vote.vote_value === -1
-            ).length;
-            const userVote =
-              votes.find((vote) => vote.user_id === user.id)?.vote_value ??
-              null;
-            const author = profileById.get(item.user_id);
+        <section className="feed-section">
+          <div className="feed-header">
+            <h2 className="section-title">Community Caption Feed</h2>
+            <span className="count-pill">{items.length} captioned</span>
+          </div>
 
-            return (
-              <CaptionCard
-                key={item.id}
-                image={{
-                  id: item.id,
-                  image_url: item.image_url,
-                  caption: item.caption,
-                  authorName: author?.first_name
-                    ? `${author.first_name} ${author.last_name || ""}`.trim()
-                    : "Anonymous",
-                }}
-                score={upvotes - downvotes}
-                userVote={userVote}
-              />
-            );
-          })}
-        </div>
-      </section>
-    </main>
+          {!imagesError && items.length === 0 ? (
+            <div className="empty-card">
+              <div style={{ display: "inline-flex", marginBottom: "10px", color: "var(--accent-champagne)" }}>
+                <IconCamera size={28} />
+              </div>
+              <p className="empty-title">No captioned photos yet.</p>
+              <p className="empty-sub">
+                Upload the first picture above and let Gemini write the punchline.
+              </p>
+            </div>
+          ) : (
+            <div className="meme-grid">
+              {items.map((item) => (
+                <CaptionCard key={item.id} image={item} />
+              ))}
+            </div>
+          )}
+        </section>
+      </main>
+    </div>
   );
 }
