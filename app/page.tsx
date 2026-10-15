@@ -1,96 +1,88 @@
-import Link from 'next/link';
-import { createClient } from '@/lib/supabaseServer';
-import AuthButton from './components/AuthButton';
+import Link from "next/link";
+import { createClient } from "@/lib/supabaseServer";
 
 export const revalidate = 0;
 
 export default async function Home() {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    let profile = null;
-    if (user) {
-        const { data } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single();
-        profile = data;
-    }
+  let profile = null;
+  if (user) {
+    const { data } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+    profile = data;
+  }
 
-    const needsNameCompletion = user && (!profile?.first_name || !profile?.last_name);
+  const needsNameCompletion = user && (!profile?.first_name || !profile?.last_name);
 
-    return (
-        <main style={{ maxWidth: '640px', margin: '48px auto', padding: '0 20px', fontFamily: 'system-ui, sans-serif' }}>
-            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <h1 style={{ fontSize: '24px', margin: 0 }}>Assignment 4 App</h1>
-                <AuthButton user={user} />
-            </header>
+  return (
+    <main className="page">
+      <section className="hero">
+        <div>
+          <p className="kicker">Room on fire / Vol. 04</p>
+          <h1 className="display" style={{ fontSize: "clamp(72px, 14vw, 140px)" }}>
+            LAST
+            <br />
+            NITE
+          </h1>
+          <p className="lede">
+            Drop a photograph. Gemini reads the frame and writes the one-liner that
+            only works on that picture — then we stamp it across the print.
+          </p>
+        </div>
+        <div className="stamp">Members Only / Google Sign-In</div>
+      </section>
 
-            {user ? (
-                <section style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {needsNameCompletion && (
-                        <div style={{ padding: '16px', backgroundColor: '#fef3c7', border: '1px solid #f59e0b', borderRadius: '8px' }}>
-                            <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', color: '#92400e' }}>
-                                Profile Incomplete!
-                            </p>
-                            <p style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#78350f' }}>
-                                Please set your first and last name to complete your registration.
-                            </p>
-                            <Link
-                                href="/profile"
-                                style={{ display: 'inline-block', padding: '8px 14px', backgroundColor: '#d97706', color: '#fff', borderRadius: '6px', textDecoration: 'none', fontSize: '14px' }}
-                            >
-                                Complete Profile
-                            </Link>
-                        </div>
-                    )}
+      <hr className="rule" />
 
-                    <div style={{ padding: '20px', border: '1px solid #e5e7eb', borderRadius: '8px', backgroundColor: '#fafafa' }}>
-                        <h2 style={{ fontSize: '18px', marginTop: 0 }}>Welcome back!</h2>
-                        <p style={{ margin: '4px 0', color: '#4b5563' }}>
-                            <strong>User ID:</strong> {user.id}
-                        </p>
-                        <p style={{ margin: '4px 0', color: '#4b5563' }}>
-                            <strong>Name:</strong> {profile?.first_name || '—'} {profile?.last_name || '—'}
-                        </p>
-                    </div>
+      {user ? (
+        <section className="stack">
+          {needsNameCompletion && (
+            <div className="panel panel-warn">
+              <p className="kicker">Registration incomplete</p>
+              <p className="lede" style={{ fontSize: "18px", marginBottom: 16 }}>
+                Set your first and last name so the gallery can credit the print.
+              </p>
+              <Link className="btn btn-blood" href="/profile">
+                Complete Profile
+              </Link>
+            </div>
+          )}
 
-                    {/* Navigation buttons for logged-in users */}
-                    <nav style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-                        <Link
-                            href="/excuses"
-                            style={{ padding: '10px 16px', backgroundColor: '#6366f1', color: '#ffffff', borderRadius: '6px', textDecoration: 'none', fontWeight: '500' }}
-                        >
-                            Syllabus Diplomat (AI Excuses & Voting) &rarr;
-                        </Link>
-                        <Link
-                            href="/profile"
-                            style={{ padding: '10px 16px', backgroundColor: '#2563eb', color: '#ffffff', borderRadius: '6px', textDecoration: 'none' }}
-                        >
-                            Profile Settings
-                        </Link>
-                        <Link
-                            href="/dashboard"
-                            style={{ padding: '10px 16px', backgroundColor: '#10b981', color: '#ffffff', borderRadius: '6px', textDecoration: 'none' }}
-                        >
-                            Protected Dashboard
-                        </Link>
-                    </nav>
-                </section>
-            ) : (
-                <div style={{ padding: '32px', textAlign: 'center', border: '1px dashed #d1d5db', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center' }}>
-                    <p style={{ color: '#4b5563', margin: 0 }}>Sign in with Google to generate AI excuses, customize your profile, and vote on community posts.</p>
+          <div className="panel">
+            <p className="kicker">Signed in</p>
+            <h2 className="display" style={{ fontSize: 48 }}>
+              {(profile?.first_name || "Anonymous") + " " + (profile?.last_name || "")}
+            </h2>
+            <p className="muted">User ID: {user.id}</p>
+          </div>
 
-                    {/* Also allow logged-out visitors to browse the feed */}
-                    <Link
-                        href="/excuses"
-                        style={{ padding: '10px 16px', backgroundColor: '#6366f1', color: '#ffffff', borderRadius: '6px', textDecoration: 'none', fontWeight: '500' }}
-                    >
-                        Browse Syllabus Diplomat Feed &rarr;
-                    </Link>
-                </div>
-            )}
-        </main>
-    );
+          <nav className="row">
+            <Link className="btn btn-blood" href="/gallery">
+              Open the Gallery
+            </Link>
+            <Link className="btn" href="/profile">
+              Profile
+            </Link>
+            <Link className="btn" href="/dashboard">
+              Backstage
+            </Link>
+          </nav>
+        </section>
+      ) : (
+        <section className="panel">
+          <p className="lede" style={{ margin: 0 }}>
+            Sign in with Google to upload, caption, vote, and even look at the wall.
+            The door stays locked until you do.
+          </p>
+        </section>
+      )}
+    </main>
+  );
 }
