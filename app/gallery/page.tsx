@@ -33,7 +33,9 @@ export default async function GalleryPage() {
     string,
     { first_name: string | null; last_name: string | null }
   >();
-  const authorIds = [...new Set((images ?? []).map((item) => item.user_id).filter(Boolean))];
+  const authorIds = [
+    ...new Set((images ?? []).map((item) => item.user_id).filter(Boolean)),
+  ];
   if (authorIds.length > 0) {
     const { data: profiles } = await supabase
       .from("profiles")
@@ -46,23 +48,28 @@ export default async function GalleryPage() {
 
   return (
     <main className="page">
-      <p className="kicker">The wall / members only</p>
-      <h1 className="display" style={{ fontSize: "clamp(56px, 10vw, 96px)" }}>
-        CAPTION
-        <br />
-        THE NIGHT
-      </h1>
-      <p className="lede">
-        Upload a still. The model has to land a joke on what is actually in the
-        frame — then the room votes.
-      </p>
+      <section className="section-hero">
+        <span className="pill-badge">
+          <span className="pill-dot" />
+          Community Meme Studio
+        </span>
+        <h1 className="hero-title">
+          Drop a Photo.{" "}
+          <span className="gradient-text">Stamp the Punchline.</span>
+        </h1>
+        <p className="lede">
+          Upload any picture. Gemini inspects the exact scene, writes a funny or
+          painfully relatable caption that fits the frame, and superimposes it
+          for the room to rate.
+        </p>
+      </section>
 
       <UploadForm />
 
       <hr className="rule" />
 
       <section className="stack">
-        <p className="kicker">Community prints</p>
+        <span className="kicker">Community Feed &amp; Live Rankings</span>
 
         {imagesError && (
           <p className="err">
@@ -73,15 +80,24 @@ export default async function GalleryPage() {
         )}
 
         {!imagesError && (!images || images.length === 0) && (
-          <p className="muted">The wall is empty. Be the first print of the night.</p>
+          <div className="glass-card empty-fortune-card">
+            <p className="empty-title">No Captioned Photos Yet</p>
+            <p className="muted">
+              Upload the first picture above and let Gemini roast it.
+            </p>
+          </div>
         )}
 
         <div className="gallery">
           {images?.map((item) => {
             const votes = item.caption_votes ?? [];
             const upvotes = votes.filter((vote) => vote.vote_value === 1).length;
-            const downvotes = votes.filter((vote) => vote.vote_value === -1).length;
-            const userVote = votes.find((vote) => vote.user_id === user.id)?.vote_value ?? null;
+            const downvotes = votes.filter(
+              (vote) => vote.vote_value === -1
+            ).length;
+            const userVote =
+              votes.find((vote) => vote.user_id === user.id)?.vote_value ??
+              null;
             const author = profileById.get(item.user_id);
 
             return (

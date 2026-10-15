@@ -24,14 +24,14 @@ export default function AuthButton({ user }: { user: User | null }) {
 
   if (user) {
     return (
-      <button className="btn" onClick={handleLogout} type="button">
+      <button className="btn btn-ghost" onClick={handleLogout} type="button">
         Sign Out
       </button>
     );
   }
 
   return (
-    <button className="btn btn-blood" onClick={handleLogin} type="button">
+    <button className="btn btn-primary" onClick={handleLogin} type="button">
       Sign in with Google
     </button>
   );

@@ -3,13 +3,18 @@ import Link from "next/link";
 export default function NotFound() {
   return (
     <main className="page">
-      <p className="kicker">Wrong door</p>
-      <h1 className="display" style={{ fontSize: 96 }}>
-        404
+      <span className="pill-badge">
+        <span className="pill-dot" />
+        404 Plot Twist
+      </span>
+      <h1 className="hero-title">
+        Lost in the <span className="gradient-text">Multiverse.</span>
       </h1>
-      <p className="lede">This page walked out before last call.</p>
-      <Link className="btn" href="/">
-        Back to LAST NITE
+      <p className="lede" style={{ marginBottom: 24 }}>
+        This route wandered off looking for snacks. Head back to the studio.
+      </p>
+      <Link className="btn btn-primary" href="/">
+        Back to Prism Pop
       </Link>
     </main>
   );

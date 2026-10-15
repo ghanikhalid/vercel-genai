@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { castVoteAction } from "@/app/actions";
 
 export default function CaptionCard({
@@ -18,6 +18,7 @@ export default function CaptionCard({
   userVote: number | null;
 }) {
   const [isPending, startTransition] = useTransition();
+  const [tilt, setTilt] = useState({ rx: 0, ry: 0 });
 
   const handleVote = (value: number) => {
     startTransition(async () => {
@@ -25,8 +26,25 @@ export default function CaptionCard({
     });
   };
 
+  const handleMouseMove = (event: React.MouseEvent<HTMLElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / rect.width;
+    const y = (event.clientY - rect.top) / rect.height;
+    setTilt({
+      rx: (0.5 - y) * 12,
+      ry: (x - 0.5) * 12,
+    });
+  };
+
   return (
-    <article className="caption-card">
+    <article
+      className="caption-card"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={() => setTilt({ rx: 0, ry: 0 })}
+      style={{
+        transform: `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg)`,
+      }}
+    >
       <div className="frame">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={image.image_url} alt={image.caption} />

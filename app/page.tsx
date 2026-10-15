@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabaseServer";
+import AuthButton from "./components/AuthButton";
 
 export const revalidate = 0;
 
@@ -19,24 +20,56 @@ export default async function Home() {
     profile = data;
   }
 
-  const needsNameCompletion = user && (!profile?.first_name || !profile?.last_name);
+  const needsNameCompletion =
+    user && (!profile?.first_name || !profile?.last_name);
 
   return (
     <main className="page">
-      <section className="hero">
+      <section className="hero-3d-grid">
         <div>
-          <p className="kicker">Room on fire / Vol. 04</p>
-          <h1 className="display" style={{ fontSize: "clamp(72px, 14vw, 140px)" }}>
-            LAST
-            <br />
-            NITE
+          <span className="pill-badge">
+            <span className="pill-dot" />
+            Powered by Gemini Vision &amp; 3D Motion
+          </span>
+          <h1 className="hero-title">
+            Turn Any Photo Into{" "}
+            <span className="gradient-text">Pure Comedy Gold.</span>
           </h1>
           <p className="lede">
-            Drop a photograph. Gemini reads the frame and writes the one-liner that
-            only works on that picture — then we stamp it across the print.
+            Drop a snapshot and let AI write a punchline that only works on your
+            exact frame — or crack open your 24-hour Meme Fortune Cookie to see
+            how your day is about to unfold.
           </p>
+
+          <div className="row" style={{ marginTop: 26 }}>
+            {user ? (
+              <>
+                <Link className="btn btn-primary btn-lg" href="/gallery">
+                  ✨ Open Caption Wall
+                </Link>
+                <Link className="btn btn-secondary btn-lg" href="/dashboard">
+                  🥠 Roll Daily Meme Fortune
+                </Link>
+              </>
+            ) : (
+              <AuthButton user={null} />
+            )}
+          </div>
         </div>
-        <div className="stamp">Members Only / Google Sign-In</div>
+
+        <div className="stage-3d" aria-hidden="true">
+          <div className="floating-stack">
+            <div className="showcase-layer layer-back" />
+            <div className="showcase-layer layer-main">
+              <span className="kicker">LIVE 3D PREVIEW</span>
+              <div className="layer-emoji-stage">🦝🧋💻</div>
+              <div className="layer-caption-pill">
+                “ME AT 2 AM CONVINCED ONE MORE TAB WILL FIX MY LIFE”
+              </div>
+            </div>
+            <div className="layer-floating-badge">🥠 24H FORTUNE ORACLE</div>
+          </div>
+        </div>
       </section>
 
       <hr className="rule" />
@@ -45,41 +78,76 @@ export default async function Home() {
         <section className="stack">
           {needsNameCompletion && (
             <div className="panel panel-warn">
-              <p className="kicker">Registration incomplete</p>
-              <p className="lede" style={{ fontSize: "18px", marginBottom: 16 }}>
-                Set your first and last name so the gallery can credit the print.
+              <span className="kicker">Profile Incomplete</span>
+              <h2 className="card-heading">Claim Your Creator Tag</h2>
+              <p className="lede" style={{ fontSize: 17, marginBottom: 16 }}>
+                Add your first and last name so every captioned meme on the wall
+                credits you properly.
               </p>
-              <Link className="btn btn-blood" href="/profile">
+              <Link className="btn btn-primary" href="/profile">
                 Complete Profile
               </Link>
             </div>
           )}
 
-          <div className="panel">
-            <p className="kicker">Signed in</p>
-            <h2 className="display" style={{ fontSize: 48 }}>
-              {(profile?.first_name || "Anonymous") + " " + (profile?.last_name || "")}
-            </h2>
-            <p className="muted">User ID: {user.id}</p>
-          </div>
+          <div className="bento-grid">
+            <div className="bento-card">
+              <div className="bento-icon">📸</div>
+              <span className="kicker">AI CAPTION STUDIO</span>
+              <h2 className="card-heading">Superimpose the Joke</h2>
+              <p className="muted" style={{ marginBottom: 18 }}>
+                Upload any photo to Supabase Storage. Gemini inspects every
+                detail in the frame, lands a custom joke, and stamps it onto the
+                image for the community to upvote or downvote.
+              </p>
+              <Link className="btn btn-primary" href="/gallery">
+                Go to Caption Wall →
+              </Link>
+            </div>
 
-          <nav className="row">
-            <Link className="btn btn-blood" href="/gallery">
-              Open the Gallery
-            </Link>
-            <Link className="btn" href="/profile">
-              Profile
-            </Link>
-            <Link className="btn" href="/dashboard">
-              Backstage
-            </Link>
-          </nav>
+            <div className="bento-card">
+              <div className="bento-icon">🥠</div>
+              <span className="kicker">ONCE EVERY 24 HOURS</span>
+              <h2 className="card-heading">Daily Meme Fortune Cookie</h2>
+              <p className="muted" style={{ marginBottom: 18 }}>
+                Roll once a day for a freshly generated meme and prophetic slip
+                predicting the exact chaotic energy your day has in store.
+              </p>
+              <Link className="btn btn-secondary" href="/dashboard">
+                Crack Today’s Cookie →
+              </Link>
+            </div>
+
+            <div className="bento-card">
+              <div className="bento-icon">🌈</div>
+              <span className="kicker">SIGNED IN CREATOR</span>
+              <h2 className="card-heading">
+                {(profile?.first_name || "Anonymous") +
+                  " " +
+                  (profile?.last_name || "")}
+              </h2>
+              <p className="muted" style={{ marginBottom: 18 }}>
+                User ID: {user.id.slice(0, 12)}… • Update your avatar and
+                display name anytime.
+              </p>
+              <Link className="btn btn-ghost" href="/profile">
+                Edit Profile →
+              </Link>
+            </div>
+          </div>
         </section>
       ) : (
-        <section className="panel">
-          <p className="lede" style={{ margin: 0 }}>
-            Sign in with Google to upload, caption, vote, and even look at the wall.
-            The door stays locked until you do.
+        <section className="glass-card stack" style={{ textAlign: "center", alignItems: "center" }}>
+          <span className="pill-badge">
+            <span className="pill-dot" />
+            Members-Only Club
+          </span>
+          <h2 className="card-heading" style={{ marginBottom: 0 }}>
+            Sign in with Google to Unlock the Wall &amp; Daily Fortune
+          </h2>
+          <p className="lede" style={{ fontSize: 17 }}>
+            Viewing captioned memes, uploading photos, voting, and rolling your
+            24-hour meme fortune all require a verified Google account.
           </p>
         </section>
       )}
