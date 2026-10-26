@@ -1,8 +1,14 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { generateCaptionedImageAction } from "@/app/actions";
 import { IconCamera, IconSparkle } from "@/app/components/Icons";
+
+const PROGRESS_STEPS = [
+  "Scanning photo details...",
+  "Finding a fresh comedic angle...",
+  "Polishing your punchline...",
+];
 
 export default function UploadForm() {
   const formRef = useRef<HTMLFormElement>(null);
@@ -10,6 +16,18 @@ export default function UploadForm() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string>("");
+  const [stepIdx, setStepIdx] = useState(0);
+
+  useEffect(() => {
+    if (!isPending) {
+      setStepIdx(0);
+      return;
+    }
+    const timer = window.setInterval(() => {
+      setStepIdx((prev) => (prev + 1) % PROGRESS_STEPS.length);
+    }, 2200);
+    return () => window.clearInterval(timer);
+  }, [isPending]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -52,6 +70,7 @@ export default function UploadForm() {
             type="file"
             accept="image/jpeg,image/png,image/webp,image/gif"
             required
+            disabled={isPending}
             onChange={handleFileChange}
             className="sr-only-input"
           />
@@ -82,21 +101,44 @@ export default function UploadForm() {
           <span className="kicker">AI Caption Generator</span>
           <h2 className="upload-heading">Let Gemini write the punchline.</h2>
           <p className="upload-copy">
-            We send your image to Gemini Vision to craft a short, hyper-specific meme caption and superimpose it right onto the photo.
+            Upload any photo for a fresh, scene-specific caption placed cleanly underneath your image. Re-uploading the same photo spins up a brand-new joke each time.
           </p>
 
-          <button
-            type="submit"
-            disabled={isPending}
-            className="btn-primary upload-submit"
-          >
-            <IconSparkle size={16} />
-            <span>
-              {isPending
-                ? "Inspecting photo & writing caption..."
-                : "Generate & Post Caption"}
+          <div className="upload-action-group">
+            <button
+              type="submit"
+              disabled={isPending}
+              className="btn-primary upload-submit"
+            >
+              <IconSparkle size={16} />
+              <span>
+                {isPending
+                  ? "Crafting your caption..."
+                  : "Generate & Post Caption"}
+              </span>
+            </button>
+
+            <span className="upload-timing-note">
+              Takes ~3–6 seconds while AI studies the photo.
             </span>
-          </button>
+          </div>
+
+          {isPending && (
+            <div className="caption-progress-box" role="status" aria-live="polite">
+              <div className="caption-progress-header">
+                <span className="caption-progress-spinner" aria-hidden="true" />
+                <span className="caption-progress-step">
+                  {PROGRESS_STEPS[stepIdx]}
+                </span>
+              </div>
+              <div className="caption-progress-track">
+                <div className="caption-progress-bar" />
+              </div>
+              <p className="caption-progress-hint">
+                Hang tight — this usually takes a few seconds.
+              </p>
+            </div>
+          )}
 
           {errorMsg && <p className="form-error">{errorMsg}</p>}
         </div>

@@ -20,6 +20,15 @@ const CANDIDATE_MODELS = [
   "gemini-3.1-flash-lite",
 ];
 
+const COMEDIC_ANGLES = [
+  "Write it as the unspoken inner monologue of the main subject or object in the frame.",
+  "Frame it as an absurdly specific 'POV:' or 'Me when...' moment anchored to a detail in the photo.",
+  "Zoom in on a subtle background detail, posture, or lighting quirk and make THAT the entire joke.",
+  "Write it like a deadpan nature-documentary or museum-placard observation about what is happening.",
+  "Contrast the vibe of the photo with a relatable everyday delusion (e.g., 'I have my life together').",
+  "Treat the scene like a high-stakes movie screenshot for a completely mundane real-life problem.",
+];
+
 export interface DailyFortuneRecord {
   caption: string;
   prophecy: string;
@@ -128,10 +137,34 @@ export async function generateCaptionedImageAction(
       return { success: false, error: "GEMINI_API_KEY is not configured on the server." };
     }
 
-    const bytes = Buffer.from(await file.arrayBuffer());
-    const prompt = `Look at this exact photograph. Write one caption that only works because of what is actually in the frame — a specific object, face, pose, setting, or accident of timing.
+    // Fetch recent captions so re-uploading the same photo always produces a brand-new joke
+    const { data: recentRows } = await supabase
+      .from("captioned_images")
+      .select("caption")
+      .order("created_at", { ascending: false })
+      .limit(12);
 
-It must land as a joke or as painfully relatable humor. No generic lines that could sit on any photo. No hashtags, no quotation marks, no speaker labels.
+    const recentCaptions = (recentRows ?? [])
+      .map((r) => r.caption)
+      .filter(Boolean);
+
+    const angle = COMEDIC_ANGLES[Math.floor(Math.random() * COMEDIC_ANGLES.length)];
+    const variationToken = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+    const avoidBlock =
+      recentCaptions.length > 0
+        ? `\nIMPORTANT: Do NOT repeat or closely paraphrase any of these previously generated captions:\n${recentCaptions
+            .map((c) => `- "${c}"`)
+            .join("\n")}\nPick a completely different joke, detail, or angle.`
+        : "";
+
+    const bytes = Buffer.from(await file.arrayBuffer());
+    const prompt = `Look at this exact photograph (variation seed: ${variationToken}). Write one fresh caption that only works because of what is actually in the frame — a specific object, face, pose, setting, or accident of timing.
+
+Comedic direction for this take: ${angle}
+${avoidBlock}
+
+It must land as a sharp joke or painfully relatable humor. No generic lines that could sit on any photo. No hashtags, no quotation marks, no emojis, no speaker labels.
 
 Respond with JSON only:
 { "caption": "short caption, 12 words or fewer" }`;
@@ -149,6 +182,7 @@ Respond with JSON only:
           ]),
           config: {
             responseMimeType: "application/json",
+            temperature: 1.15,
           },
         });
         if (response?.text) break;
@@ -343,6 +377,7 @@ Respond strictly in valid JSON with these exact keys:
           contents: textPrompt,
           config: {
             responseMimeType: "application/json",
+            temperature: 1.1,
           },
         });
         if (res?.text) {

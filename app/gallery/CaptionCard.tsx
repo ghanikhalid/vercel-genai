@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { castVoteAction } from "@/app/actions";
 import { IconVoteDown, IconVoteUp } from "@/app/components/Icons";
 
@@ -21,8 +21,18 @@ export default function CaptionCard({ image }: { image: CaptionedPhotoItem }) {
   const [error, setError] = useState<string | null>(null);
   const [optimisticVote, setOptimisticVote] = useState<number>(image.userVote);
 
-  // Sync optimistic vote if server prop changes
-  const activeVote = isPending ? optimisticVote : image.userVote;
+  useEffect(() => {
+    setOptimisticVote(image.userVote);
+  }, [image.userVote, image.upvotes, image.downvotes, image.score]);
+
+  const activeVote = optimisticVote;
+  const upvotes =
+    image.upvotes + (activeVote === 1 ? 1 : 0) - (image.userVote === 1 ? 1 : 0);
+  const downvotes =
+    image.downvotes +
+    (activeVote === -1 ? 1 : 0) -
+    (image.userVote === -1 ? 1 : 0);
+  const score = upvotes - downvotes;
 
   const handleVote = (val: 1 | -1) => {
     setError(null);
@@ -49,8 +59,10 @@ export default function CaptionCard({ image }: { image: CaptionedPhotoItem }) {
           className="meme-img"
           loading="lazy"
         />
-        <div className="meme-scrim" />
-        <p className="meme-overlay-caption">{image.caption}</p>
+      </div>
+
+      <div className="meme-caption-box">
+        <p className="meme-below-caption">&ldquo;{image.caption}&rdquo;</p>
       </div>
 
       <footer className="meme-bar">
@@ -75,15 +87,15 @@ export default function CaptionCard({ image }: { image: CaptionedPhotoItem }) {
             title={activeVote === 1 ? "Click again to take back your vote" : "Upvote"}
           >
             <IconVoteUp size={15} />
-            <span>{image.upvotes}</span>
+            <span>{upvotes}</span>
           </button>
 
           <span
             className={`vote-net ${
-              image.score > 0 ? "pos" : image.score < 0 ? "neg" : ""
+              score > 0 ? "pos" : score < 0 ? "neg" : ""
             }`}
           >
-            {image.score > 0 ? `+${image.score}` : image.score}
+            {score > 0 ? `+${score}` : score}
           </span>
 
           <button
@@ -96,7 +108,7 @@ export default function CaptionCard({ image }: { image: CaptionedPhotoItem }) {
             title={activeVote === -1 ? "Click again to take back your vote" : "Downvote"}
           >
             <IconVoteDown size={15} />
-            <span>{image.downvotes}</span>
+            <span>{downvotes}</span>
           </button>
         </div>
       </footer>

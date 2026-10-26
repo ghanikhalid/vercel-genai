@@ -380,11 +380,11 @@ a {
     rgba(170, 178, 214, 0.1) 100%
   );
   border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 16px;
+  padding: 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   position: relative;
   overflow: hidden;
 }
@@ -394,23 +394,22 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 4px;
   transform: translateZ(20px);
 }
 
 .showcase-meme-bar {
   width: 100%;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: rgba(11, 11, 14, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  padding: 11px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-main);
   font-family: var(--font-display), sans-serif;
-  font-size: 0.76rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   text-align: center;
-  line-height: 1.38;
+  line-height: 1.4;
 }
 
 .showcase-slip {
@@ -1155,6 +1154,114 @@ a {
   margin-top: 4px;
 }
 
+.upload-action-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.upload-timing-note {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.caption-progress-box {
+  width: 100%;
+  margin-top: 10px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(228, 201, 160, 0.06);
+  border: 1px solid rgba(228, 201, 160, 0.24);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.caption-progress-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.caption-progress-spinner {
+  width: 15px;
+  height: 15px;
+  border-radius: 999px;
+  border: 2px solid rgba(228, 201, 160, 0.28);
+  border-top-color: var(--accent-champagne);
+  animation: progressSpin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes progressSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.caption-progress-step {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--accent-champagne);
+}
+
+.caption-progress-track {
+  width: 100%;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.caption-progress-bar {
+  width: 45%;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--gradient-button);
+  animation: progressIndeterminate 1.4s ease-in-out infinite;
+}
+
+@keyframes progressIndeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(240%);
+  }
+}
+
+.caption-progress-hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.chic-input {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--surface-border);
+  color: var(--text-main);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.18s ease;
+}
+
+.chic-input:focus {
+  border-color: var(--accent-champagne);
+}
+
+.chic-file-input {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--surface-border);
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+}
+
 .form-error {
   margin: 8px 0 0;
   padding: 10px 14px;
@@ -1166,7 +1273,7 @@ a {
 }
 
 /* =========================================================
-   MEME CAPTION FEED & VOTING CARDS
+   MEME CAPTION FEED & VOTING CARDS (CAPTION BELOW PHOTO)
    ========================================================= */
 .feed-section {
   display: flex;
@@ -1225,7 +1332,7 @@ a {
 .meme-stage {
   position: relative;
   width: 100%;
-  aspect-ratio: 4 / 4.2;
+  aspect-ratio: 4 / 3.4;
   background: #08080b;
   overflow: hidden;
 }
@@ -1237,38 +1344,24 @@ a {
   display: block;
 }
 
-.meme-scrim {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to top,
-    rgba(8, 8, 11, 0.92) 0%,
-    rgba(8, 8, 11, 0.35) 38%,
-    transparent 70%
-  );
-  pointer-events: none;
+.meme-caption-box {
+  padding: 18px 20px 16px;
+  background: rgba(255, 255, 255, 0.025);
+  border-top: 1px solid var(--surface-border);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex: 1;
+  display: flex;
+  align-items: center;
 }
 
-.meme-overlay-caption {
-  position: absolute;
-  left: 16px;
-  right: 16px;
-  bottom: 16px;
+.meme-below-caption {
   margin: 0;
-  text-align: center;
-  font-family: var(--font-display), Impact, "Arial Black", sans-serif;
-  font-weight: 800;
-  font-size: clamp(1.02rem, 1.7vw, 1.24rem);
-  line-height: 1.24;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  color: #ffffff;
-  text-shadow:
-    0 2px 12px rgba(0, 0, 0, 0.95),
-    -1px -1px 0 #000,
-    1px -1px 0 #000,
-    -1px 1px 0 #000,
-    1px 1px 0 #000;
+  font-family: var(--font-display), sans-serif;
+  font-weight: 600;
+  font-size: 1.02rem;
+  line-height: 1.48;
+  letter-spacing: -0.01em;
+  color: var(--text-main);
 }
 
 .meme-bar {

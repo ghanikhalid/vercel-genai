@@ -22,7 +22,7 @@ export default async function GalleryPage() {
             <span className="kicker">Members Only</span>
             <h1 className="gate-title">Sign in to view &amp; vote on captions.</h1>
             <p className="gate-copy">
-              The Caption Wall is a private community studio. Sign in with Google to upload photos, generate AI meme captions, and vote on the feed.
+              The Caption Wall is a private community studio. Sign in with Google to upload photos, generate AI captions, and vote on the feed.
             </p>
             <div className="gate-actions">
               <AuthButton user={null} />
@@ -112,11 +112,11 @@ export default async function GalleryPage() {
           <div>
             <span className="kicker">Community Meme Studio</span>
             <h1 className="page-title">
-              Drop a photo. <span className="text-gradient">Stamp the punchline.</span>
+              Drop a photo. <span className="text-gradient">Read the punchline.</span>
             </h1>
           </div>
           <p className="page-sub">
-            Gemini inspects the exact objects, expressions, and awkward timing in your photo and burns a relatable caption onto the frame. Click an active vote button again anytime to take back your vote.
+            Gemini spots the details in your shot and writes a witty caption displayed cleanly below the photo. Click an active vote button again anytime to take back your vote.
           </p>
         </div>
 

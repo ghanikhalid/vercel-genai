@@ -40,15 +40,13 @@ export default function SiteHeader({
           <IconCookie size={14} />
           <span>Daily Fortune</span>
         </Link>
-        {user && (
-          <Link
-            href="/profile"
-            className={`nav-pill ${active === "profile" ? "active" : ""}`}
-          >
-            <IconUser size={14} />
-            <span>Profile</span>
-          </Link>
-        )}
+        <Link
+          href="/profile"
+          className={`nav-pill ${active === "profile" ? "active" : ""}`}
+        >
+          <IconUser size={14} />
+          <span>Profile</span>
+        </Link>
       </nav>
 
       <div className="header-actions">

@@ -25,7 +25,7 @@ export default async function Home() {
           <div className="hero-copy-col">
             <div className="hero-badge">
               <span className="hero-badge-dot" />
-              <span>AI PHOTO ROASTS + 24H MEME ORACLE</span>
+              <span>AI PHOTO CAPTIONS · DAILY MEME ORACLE</span>
             </div>
 
             <h1 className="hero-title">
@@ -34,7 +34,7 @@ export default async function Home() {
             </h1>
 
             <p className="hero-sub">
-              Upload any camera-roll snapshot for an instant AI meme caption stamped right onto the frame, or visit the <strong>Daily Fortune</strong> room once every 24 hours to see what meme predicts your day.
+              Turn any camera-roll moment into a spot-on caption, or roll your 24-hour meme prophecy to see how your day will unfold.
             </p>
 
             <div className="hero-cta-row">
@@ -66,11 +66,11 @@ export default async function Home() {
             <div className="apple-3d-rig">
               <div className="floating-chip chip-top-left">
                 <IconSparkle size={14} />
-                <span>GEMINI VISION</span>
+                <span>INSTANT WIT</span>
               </div>
               <div className="floating-chip chip-bottom-right">
                 <IconCookie size={14} />
-                <span>24H MEME PROPHECY</span>
+                <span>24H PROPHECY</span>
               </div>
 
               <div className="showcase-card-back">
@@ -83,16 +83,16 @@ export default async function Home() {
               <div className="showcase-card-front">
                 <div className="showcase-art">
                   <div className="showcase-svg-wrap">
-                    <IconHeroLineScene size={108} />
-                  </div>
-                  <div className="showcase-meme-bar">
-                    &ldquo;ME PRETENDING MY 47 OPEN TABS ARE A CAREFULLY ENGINEERED SYSTEM&rdquo;
+                    <IconHeroLineScene size={112} />
                   </div>
                 </div>
+                <div className="showcase-meme-bar">
+                  &ldquo;ME PRETENDING MY 47 OPEN TABS ARE A CAREFULLY ENGINEERED SYSTEM&rdquo;
+                </div>
                 <div className="showcase-slip">
-                  <span className="showcase-slip-kicker">TODAY&apos;S PROPHECY</span>
+                  <span className="showcase-slip-kicker">TODAY&apos;S FORTUNE</span>
                   <p className="showcase-slip-text">
-                    Today you will confidently improvise through three minor plot twists while holding an overpriced iced drink.
+                    You will improvise through three minor plot twists while holding an iced drink.
                   </p>
                 </div>
               </div>
@@ -109,7 +109,7 @@ export default async function Home() {
               <span className="kicker">01 · Visual Comedy</span>
               <h2 className="card-heading">Context-aware photo captions</h2>
               <p className="card-copy">
-                Gemini inspects the actual faces, objects, and awkward timing in your shot—never generic one-liners—and burns the caption onto the frame.
+                Drop any photo and get a witty caption tailored to the moment.
               </p>
             </div>
           </div>
@@ -122,7 +122,7 @@ export default async function Home() {
               <span className="kicker">02 · 24-Hour Ritual</span>
               <h2 className="card-heading">Daily Meme Fortune Cookie</h2>
               <p className="card-copy">
-                Once every 24 hours, roll the oracle to receive a custom meme headline and a hilarious prophecy predicting how your day will unfold.
+                Crack open one custom meme prophecy every 24 hours.
               </p>
             </div>
           </div>
@@ -135,7 +135,7 @@ export default async function Home() {
               <span className="kicker">03 · Members-Only Wall</span>
               <h2 className="card-heading">Private club + live voting</h2>
               <p className="card-copy">
-                Locked behind Supabase Auth &amp; Row-Level Security so only signed-in members can post, upvote, downvote, or retract their vote at any time.
+                Share with members, vote on favorites, or take back your vote anytime.
               </p>
             </div>
           </div>
